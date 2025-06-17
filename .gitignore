@@ -1,0 +1,62 @@
+# Build folders
+bin/
+obj/
+
+# Visual Studio cache files
+.vs/
+.vscode/
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+# Auto-generated files
+*.dbmdl
+*.bak
+*.backup
+*.log
+
+# NuGet Packages
+*.nupkg
+packages/
+.nuget/
+
+# Publish output
+publish/
+
+# Resharper
+_ReSharper*/
+*.DotSettings.user
+
+# Rider IDE files
+.idea/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# DotCover coverage files
+*.dotCover
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Test Results
+TestResults/
+
+# IIS Express
+/.vs/
+
+# User Secrets (local sensitive data)
+secrets.json
+
+# ASP.NET Core configuration overrides
+appsettings.*.json
+
+# Publish folder
+publish/
