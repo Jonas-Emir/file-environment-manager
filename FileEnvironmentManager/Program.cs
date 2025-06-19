@@ -102,6 +102,7 @@ namespace GerenciadorDePastas
                 }
             }
         }
+
         static void CriarPastaSimples()
         {
             Console.WriteLine("\n--- Criar Pasta Simples ---");
@@ -137,6 +138,7 @@ namespace GerenciadorDePastas
                 Console.ResetColor();
             }
         }
+
         static void CriarPastasPorIntervaloECategoriaUnica()
         {
             Console.WriteLine("\n--- Criar Apenas Pastas por Intervalo e Categoria Única ---");
@@ -173,11 +175,12 @@ namespace GerenciadorDePastas
             }
             Console.WriteLine($"\nProcesso finalizado. {pastasCriadas} novas pastas foram criadas.");
         }
+
         static async Task AtribuirArquivosAPastasDeProjetoExistentes()
         {
             Console.WriteLine("\n--- Atribuir Thumbnails a Pastas de Projeto Existentes ---");
 
-            string diretorioProjetos = ObterCaminhoDoUsuario("Digite o caminho que contém as pastas de projeto (ex: 135_Construção)");
+            string diretorioProjetos = ObterCaminhoDoUsuario("Digite o caminho que contém as pastas de projeto (ex: 135_Construcao)");
             if (!Directory.Exists(diretorioProjetos))
             {
                 Console.ForegroundColor = ConsoleColor.Red;
@@ -200,7 +203,8 @@ namespace GerenciadorDePastas
             string acaoFeita = copiar ? "criado (origem mantida)" : "criado (origem removida)";
 
             Console.WriteLine("\nCatalogando arquivos de origem...");
-            var arquivosPorCategoria = new Dictionary<string, Queue<string>>();
+            var arquivosPorCategoria = new Dictionary<string, List<string>>();
+            var indiceAtualPorCategoria = new Dictionary<string, int>();
 
             foreach (var parCategoria in CategoriasConhecidas)
             {
@@ -211,7 +215,8 @@ namespace GerenciadorDePastas
                 {
                     arquivosEncontrados.AddRange(Directory.GetFiles(caminhoSubpastaCategoria));
                 }
-                arquivosPorCategoria[nomePastaCategoria] = new Queue<string>(arquivosEncontrados);
+                arquivosPorCategoria[nomePastaCategoria] = arquivosEncontrados;
+                indiceAtualPorCategoria[nomePastaCategoria] = 0; 
                 Console.WriteLine($"  - Categoria '{nomePastaCategoria}': {arquivosEncontrados.Count} arquivo(s) encontrado(s).");
             }
 
@@ -245,7 +250,10 @@ namespace GerenciadorDePastas
 
                 if (arquivosPorCategoria.ContainsKey(nomeOficialCategoria) && arquivosPorCategoria[nomeOficialCategoria].Count > 0)
                 {
-                    string arquivoOriginal = arquivosPorCategoria[nomeOficialCategoria].Dequeue();
+                    int currentIndex = indiceAtualPorCategoria[nomeOficialCategoria];
+                    string arquivoOriginal = arquivosPorCategoria[nomeOficialCategoria][currentIndex];
+
+                    indiceAtualPorCategoria[nomeOficialCategoria] = (currentIndex + 1) % arquivosPorCategoria[nomeOficialCategoria].Count;
                     try
                     {
                         string nomeOriginalArquivo = Path.GetFileName(arquivoOriginal);
@@ -261,7 +269,6 @@ namespace GerenciadorDePastas
 
                             await image.SaveAsync(caminhoThumbnail, new JpegEncoder());
                         }
-
                         if (!copiar)
                         {
                             File.Delete(arquivoOriginal);
@@ -282,7 +289,10 @@ namespace GerenciadorDePastas
                 else
                 {
                     Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine($"  - Nenhum arquivo de mock disponível para a categoria '{nomeOficialCategoria}'.");
+                    string msg = arquivosPorCategoria.ContainsKey(nomeOficialCategoria) && arquivosPorCategoria[nomeOficialCategoria].Count == 0
+                        ? $"  - Nenhum arquivo de mock disponível para a categoria '{nomeOficialCategoria}'. Pulando."
+                        : $"  - Categoria '{nomeOficialCategoria}' não encontrada nos arquivos de mock ou não há arquivos. Pulando.";
+                    Console.WriteLine(msg);
                     Console.ResetColor();
                 }
             }
