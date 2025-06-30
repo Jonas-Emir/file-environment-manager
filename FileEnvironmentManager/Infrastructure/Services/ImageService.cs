@@ -1,8 +1,8 @@
 ﻿using FileEnvironmentManager.Domain.Interfaces;
-using FileEnvironmentManager.Domain.Models;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
+using FileEnvironmentManager.Domain.Constants;
 
 namespace FileEnvironmentManager.Infrastructure.Services
 {
@@ -10,51 +10,74 @@ namespace FileEnvironmentManager.Infrastructure.Services
     {
         public async Task AssignThumbnailsToProjectFolders(string projectsPath, string sourcePath, bool copy)
         {
-            var sourceByCategory = new Dictionary<string, List<string>>();
-            var currentIndex = new Dictionary<string, int>();
+            var sourceByCategory = LoadSourceFilesByCategory(sourcePath);
+            var currentIndex = InitializeIndices(sourceByCategory);
 
-            foreach (var category in Category.Known)
+            var projectFolders = Directory.GetDirectories(projectsPath);
+
+            foreach (var folderPath in projectFolders)
             {
-                string categoryFolder = Path.Combine(sourcePath, category.Value);
+                var category = ExtractCategoryFromFolderName(folderPath);
+                if (category == null)
+                    continue;
+
+                if (!sourceByCategory.TryGetValue(category, out var files) || files.Count == 0)
+                    continue;
+
+                int index = currentIndex[category];
+                var sourceFile = files[index];
+
+                currentIndex[category] = (index + 1) % files.Count;
+
+                var destFile = Path.Combine(folderPath, Path.GetFileName(sourceFile));
+                await ResizeAndSaveImageAsync(sourceFile, destFile);
+
+                if (!copy)
+                    File.Delete(sourceFile);
+            }
+        }
+
+        private Dictionary<string, List<string>> LoadSourceFilesByCategory(string sourcePath)
+        {
+            var dict = new Dictionary<string, List<string>>();
+            foreach (var category in CategoryAliases.Known.Values.Distinct())
+            {
+                var categoryFolder = Path.Combine(sourcePath, category);
                 var files = Directory.Exists(categoryFolder)
                     ? Directory.GetFiles(categoryFolder).ToList()
                     : new List<string>();
-
-                sourceByCategory[category.Value] = files;
-                currentIndex[category.Value] = 0;
+                dict[category] = files;
             }
+            return dict;
+        }
 
-            var folders = Directory.GetDirectories(projectsPath);
-            foreach (var folder in folders)
+        private Dictionary<string, int> InitializeIndices(Dictionary<string, List<string>> sourceByCategory)
+        {
+            return sourceByCategory.ToDictionary(kvp => kvp.Key, kvp => 0);
+        }
+
+        private string? ExtractCategoryFromFolderName(string folderPath)
+        {
+            var folderName = Path.GetFileName(folderPath);
+            var parts = folderName.Split('_');
+            if (parts.Length < 2) return null;
+
+            var categoryPart = parts.Last();
+
+            return CategoryAliases.Known.Values
+                .FirstOrDefault(c => c.Equals(categoryPart, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private async Task ResizeAndSaveImageAsync(string sourceFile, string destFile)
+        {
+            using var image = await Image.LoadAsync(sourceFile);
+            image.Mutate(x => x.Resize(new ResizeOptions
             {
-                var name = Path.GetFileName(folder);
-                var parts = name.Split('_');
-                if (parts.Length < 2) continue;
+                Size = new Size(600, 600),
+                Mode = ResizeMode.Max
+            }));
 
-                var category = parts.Last();
-                var match = Category.Known.Values.FirstOrDefault(x => x.Equals(category, StringComparison.OrdinalIgnoreCase));
-                if (string.IsNullOrEmpty(match)) continue;
-
-                var list = sourceByCategory[match];
-                if (list.Count == 0) continue;
-
-                int idx = currentIndex[match];
-                var file = list[idx];
-                currentIndex[match] = (idx + 1) % list.Count;
-
-                var fileName = Path.GetFileName(file);
-                var dest = Path.Combine(folder, fileName);
-
-                using var image = await Image.LoadAsync(file);
-                image.Mutate(x => x.Resize(new ResizeOptions
-                {
-                    Size = new Size(600, 600),
-                    Mode = ResizeMode.Max
-                }));
-
-                await image.SaveAsync(dest, new JpegEncoder());
-                if (!copy) File.Delete(file);
-            }
+            await image.SaveAsync(destFile, new JpegEncoder());
         }
     }
 }
