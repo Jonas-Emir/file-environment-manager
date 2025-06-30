@@ -7,7 +7,7 @@ A repetição e o risco de erro rapidamente tornaram claro que eu precisava de u
 A ferramenta permite configurar um diretório de origem contendo os arquivos a serem organizados e, a partir de uma lista de identificadores ou critérios personalizados, cria dinamicamente a estrutura de diretórios desejada no destino, em seguida, move ou copia os arquivos gerando automaticamente thumbnails das imagens nos diretórios de destino.
 
 ## Demonstração
-![gifDemo](https://github.com/Jonas-Emir/file-environment-manager/blob/main/AppConsole-Demo.gif)
+![gifDemo](https://github.com/Jonas-Emir/file-environment-manager/blob/main/AppDemo.gif)
 
 A lógica é simples, mas flexível, no meu caso, utilizei IDs e Categorias como base para a criação das pastas de destino, gerando diretórios como `./12_tecnologia/`, `./34_saude/`, `./56_marketing/`, e organizando as imagens mock de acordo com esse critérios, no entanto, a ferramenta pode facilmente ser adaptada para outros critérios, como nome de cliente, data de criação, tipo de arquivo ou qualquer outra regra que fizer sentido no seu cenário.
 
