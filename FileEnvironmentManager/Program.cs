@@ -1,4 +1,5 @@
-﻿using FileEnvironmentManager.Application.Menu;
+﻿using FileEnvironmentManager.Application;
+using FileEnvironmentManager.Application.Menu;
 using FileEnvironmentManager.Domain.Interfaces;
 using FileEnvironmentManager.Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +13,7 @@ namespace FileEnvironmentManager
             var services = new ServiceCollection();
             services.AddScoped<IFolderService, FolderService>();
             services.AddScoped<IImageService, ImageService>();
+            services.AddScoped<ProjectManager>();
             services.AddScoped<MenuService>();
 
             var serviceProvider = services.BuildServiceProvider();
