@@ -1,6 +1,6 @@
-﻿namespace FileEnvironmentManager.Domain.Models
+﻿namespace FileEnvironmentManager.Domain.Constants
 {
-    public static class Category
+    public static class CategoryAliases
     {
         public static readonly Dictionary<string, string> Known = new()
          {
