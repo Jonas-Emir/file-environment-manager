@@ -5,13 +5,11 @@ namespace FileEnvironmentManager.Application.Menu
 {
     public class MenuService
     {
-        private readonly IFolderService _folderService;
-        private readonly IImageService _imageService;
+        private readonly ProjectManager _projectManager;
 
-        public MenuService(IFolderService folderService, IImageService imageService)
+        public MenuService(ProjectManager projectManager)
         {
-            _folderService = folderService;
-            _imageService = imageService;
+            _projectManager = projectManager;
         }
 
         public async Task StartAsync()
@@ -40,7 +38,7 @@ namespace FileEnvironmentManager.Application.Menu
                             var name = ConsoleHelper.Ask("Digite o nome da pasta:");
                             try
                             {
-                                _folderService.CreateSimpleFolder(base1, name);
+                                _projectManager.CreateSimpleFolder(base1, name);
                                 ConsoleHelper.WriteSuccess($"Pasta '{name}' criada com sucesso em '{base1}'.");
                             }
                             catch (Exception ex)
@@ -56,7 +54,7 @@ namespace FileEnvironmentManager.Application.Menu
                             var cat = ConsoleHelper.Ask("Digite a categoria:");
                             try
                             {
-                                _folderService.CreateFoldersWithCategory(base2, start, end, cat);
+                                _projectManager.CreateFoldersWithCategory(base2, start, end, cat);
                                 ConsoleHelper.WriteSuccess($"Pastas de {start} a {end} com a categoria '{cat}' criadas em '{base2}'.");
                             }
                             catch (Exception ex)
@@ -73,7 +71,7 @@ namespace FileEnvironmentManager.Application.Menu
                             try
                             {
                                 await ConsoleAnimation.RunWithSpinner(() =>
-                                      _imageService.AssignThumbnailsToProjectFolders(target, source, copy),
+                                      _projectManager.AssignThumbnailsToProjectFolders(target, source, copy),
                                       "Atribuindo thumbnails"
                                   );
                                 Console.WriteLine("Operação concluída!");
@@ -94,7 +92,7 @@ namespace FileEnvironmentManager.Application.Menu
                             {
                                 await ConsoleAnimation.RunWithSpinner(() =>
                                 {
-                                    _folderService.RemoveAllFilesFromFolders(dir);
+                                    _projectManager.RemoveAllFilesFromFolders(dir);
                                     return Task.CompletedTask;
                                 }, "Removendo arquivos");
                                 Console.WriteLine("Arquivos removidos com sucesso.");
